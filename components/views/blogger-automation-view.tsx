@@ -14,9 +14,10 @@ import { DebugPanel } from "@/components/debug-panel"
 
 interface Props {
   client: Client
+  skipAutoLoad?: boolean
 }
 
-export function BloggerAutomationView({ client }: Props) {
+export function BloggerAutomationView({ client, skipAutoLoad = false }: Props) {
   const [ideas, setIdeas] = useState<BlogIdea[]>([])
   const [loading, setLoading] = useState(false)
   const [processing, setProcessing] = useState(false)
@@ -45,13 +46,17 @@ export function BloggerAutomationView({ client }: Props) {
   }
 
   useEffect(() => {
+    // Skip auto-load if skipAutoLoad is true (e.g., after reset)
+    if (skipAutoLoad) {
+      return
+    }
     refresh()
     // Optional: Poll every 10 seconds
     const interval = setInterval(() => {
       api.getBlogIdeas(client.id).then(setIdeas).catch(console.error)
     }, 10000)
     return () => clearInterval(interval)
-  }, [client.id])
+  }, [client.id, skipAutoLoad])
 
   const handleQueue = async (id: number) => {
     await api.queueBlogIdea(client.id, String(id))

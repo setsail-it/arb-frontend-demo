@@ -26,9 +26,10 @@ import { FetchProgressTracker } from "@/components/fetch-progress-tracker"
 
 interface Props {
   client: Client
+  skipAutoLoad?: boolean
 }
 
-export function ClientContextView({ client }: Props) {
+export function ClientContextView({ client, skipAutoLoad = false }: Props) {
   const [context, setContext] = useState<ClientContext>({})
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -55,8 +56,13 @@ export function ClientContextView({ client }: Props) {
   }
 
   useEffect(() => {
+    // Skip auto-load if skipAutoLoad is true (e.g., after reset)
+    if (skipAutoLoad) {
+      return
+    }
+    // Auto-load context when client changes
     loadContext()
-  }, [client.id])
+  }, [client.id, skipAutoLoad])
 
   const handleSave = async () => {
     setSaving(true)

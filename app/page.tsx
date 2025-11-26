@@ -7,10 +7,25 @@ import { ClientContextView } from "@/components/views/client-context-view"
 import { KeywordExplorerView } from "@/components/views/keyword-explorer-view"
 import { BlogIdeasView } from "@/components/views/blog-ideas-view"
 import { BloggerAutomationView } from "@/components/views/blogger-automation-view"
+import { Button } from "@/components/ui/button"
+import { RotateCcw } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function ABSControlPanel() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [activeTab, setActiveTab] = useState("context")
+  const [resetKey, setResetKey] = useState(0)
+  const [skipAutoLoad, setSkipAutoLoad] = useState(false)
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -23,6 +38,41 @@ export default function ABSControlPanel() {
           onSelectClient={setSelectedClient}
           onClientDeleted={() => setSelectedClient(null)}
         />
+
+        {selectedClient && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset Client Data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset Client Data</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will clear all loaded data for {selectedClient.name}. You will need to press buttons again to load
+                  content (Fetch from Site, Generate Ideas, etc.). This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    setSkipAutoLoad(true)
+                    setResetKey((prev) => prev + 1)
+                    // Reset skipAutoLoad after a brief delay to allow components to mount
+                    setTimeout(() => {
+                      setSkipAutoLoad(false)
+                    }, 100)
+                  }}
+                >
+                  Reset
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
 
         <div className="space-y-1">
           <NavButton label="Client Context" active={activeTab === "context"} onClick={() => setActiveTab("context")} />
@@ -48,10 +98,18 @@ export default function ABSControlPanel() {
           </div>
         ) : (
           <div className="flex-1 p-6 overflow-y-auto">
-            {activeTab === "context" && <ClientContextView client={selectedClient} />}
-            {activeTab === "keywords" && <KeywordExplorerView client={selectedClient} />}
-            {activeTab === "ideas" && <BlogIdeasView client={selectedClient} />}
-            {activeTab === "automation" && <BloggerAutomationView client={selectedClient} />}
+            {activeTab === "context" && (
+              <ClientContextView key={`context-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+            )}
+            {activeTab === "keywords" && (
+              <KeywordExplorerView key={`keywords-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+            )}
+            {activeTab === "ideas" && (
+              <BlogIdeasView key={`ideas-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+            )}
+            {activeTab === "automation" && (
+              <BloggerAutomationView key={`automation-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+            )}
           </div>
         )}
       </main>

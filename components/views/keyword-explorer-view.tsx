@@ -13,9 +13,10 @@ import { KeywordGenerationProgress } from "@/components/keyword-generation-progr
 
 interface Props {
   client: Client
+  skipAutoLoad?: boolean
 }
 
-export function KeywordExplorerView({ client }: Props) {
+export function KeywordExplorerView({ client, skipAutoLoad = false }: Props) {
   const [config, setConfig] = useState({
     max_num_kws_per_seed: 600,
     sv_min: 200,
@@ -80,12 +81,16 @@ export function KeywordExplorerView({ client }: Props) {
     setBestAlternates(new Map())
     setSelectedKeywordIds(new Set())
     setSelectedBestAlternateIds(new Set())
+    // Skip auto-load if skipAutoLoad is true (e.g., after reset)
+    if (skipAutoLoad) {
+      return
+    }
     // Refresh data for new client
     refreshIdeas()
     refreshClusters()
     refreshSets()
     refreshBestAlternates()
-  }, [client.id])
+  }, [client.id, skipAutoLoad])
 
   const handleToggleKeywordSelection = (keywordId: number) => {
     setSelectedKeywordIds((prev) => {

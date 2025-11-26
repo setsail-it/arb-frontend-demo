@@ -22,9 +22,10 @@ import {
 
 interface Props {
   client: Client
+  skipAutoLoad?: boolean
 }
 
-export function BlogIdeasView({ client }: Props) {
+export function BlogIdeasView({ client, skipAutoLoad = false }: Props) {
   const [existingTitles, setExistingTitles] = useState<string[]>([])
   const [blogIdeas, setBlogIdeas] = useState<BlogIdea[]>([])
   const [keywordSets, setKeywordSets] = useState<KeywordSet[]>([])
@@ -50,8 +51,13 @@ export function BlogIdeasView({ client }: Props) {
   }
 
   useEffect(() => {
+    // Skip auto-load if skipAutoLoad is true (e.g., after reset)
+    if (skipAutoLoad) {
+      return
+    }
+    // Auto-load data when client changes
     refresh()
-  }, [client.id])
+  }, [client.id, skipAutoLoad])
 
   const handleGenerate = async () => {
     setGenerating(true)

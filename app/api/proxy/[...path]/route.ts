@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // The actual backend URL
-const BACKEND_URL = "https://arb-production-8438.up.railway.app"
+const BACKEND_URL = "https://arb-demo-production.up.railway.app"
 
 async function handleRequest(request: NextRequest, params: { path: string[] }) {
   // Reconstruct the path (e.g., /clients, /clients/123)

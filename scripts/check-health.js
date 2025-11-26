@@ -1,4 +1,4 @@
-const backendUrl = "https://arb-production-8438.up.railway.app/health"
+const backendUrl = "https://arb-demo-production.up.railway.app/health"
 
 async function checkHealth() {
   try {

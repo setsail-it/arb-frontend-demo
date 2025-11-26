@@ -325,7 +325,7 @@ export const api = {
       body: JSON.stringify({ topic }),
     }),
   queueBlogIdea: (clientId: string, ideaId: string) =>
-    fetchJson(`/clients/${clientId}/blog-ideas/${ideaId}/queue`, { method: "POST" }),
+    fetchJson<BlogIdea>(`/clients/${clientId}/blog-ideas/${ideaId}/queue`, { method: "POST" }),
   deleteBlogIdea: (clientId: string, blogIdeaId: number) =>
     fetchJson(`/clients/${clientId}/blog-ideas/${blogIdeaId}`, {
       method: "DELETE",

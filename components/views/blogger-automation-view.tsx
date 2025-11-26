@@ -59,15 +59,34 @@ export function BloggerAutomationView({ client, skipAutoLoad = false }: Props) {
   }, [client.id, skipAutoLoad])
 
   const handleQueue = async (id: number) => {
-    await api.queueBlogIdea(client.id, String(id))
-    refresh()
+    try {
+      const updatedIdea = await api.queueBlogIdea(client.id, String(id))
+      // Update the local state with the queued idea instead of refreshing
+      setIdeas((prev) => prev.map((idea) => (idea.id === id ? updatedIdea : idea)))
+    } catch (error) {
+      console.error("Failed to queue blog idea:", error)
+      // Refresh on error to get latest state
+      refresh()
+    }
   }
 
   const handleProcessQueued = async () => {
     setProcessing(true)
     try {
-      await api.processQueued(client.id)
-      // Refresh to see items move to "In Progress"
+      const results = await api.processQueued(client.id)
+      // Update local state with the new states instead of refreshing
+      setIdeas((prev) =>
+        prev.map((idea) => {
+          const result = results.find((r) => r.blog_idea_id === idea.id)
+          if (result) {
+            return { ...idea, state: result.state as BlogIdea["state"] }
+          }
+          return idea
+        }),
+      )
+    } catch (error) {
+      console.error("Failed to process queued ideas:", error)
+      // Refresh on error to get latest state
       await refresh()
     } finally {
       setProcessing(false)

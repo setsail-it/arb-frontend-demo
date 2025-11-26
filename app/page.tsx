@@ -25,7 +25,8 @@ export default function ABSControlPanel() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [activeTab, setActiveTab] = useState("context")
   const [resetKey, setResetKey] = useState(0)
-  const [skipAutoLoad, setSkipAutoLoad] = useState(false)
+  // Track which clients have been reset - if a client is in this set, skip auto-load
+  const [resetClients, setResetClients] = useState<Set<string>>(new Set())
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -35,8 +36,19 @@ export default function ABSControlPanel() {
 
         <ClientSelector
           selectedClient={selectedClient}
-          onSelectClient={setSelectedClient}
-          onClientDeleted={() => setSelectedClient(null)}
+          onSelectClient={(client) => {
+            setSelectedClient(client)
+            // Clear reset flag when switching to a different client
+            setResetClients((prev) => {
+              const newSet = new Set(prev)
+              newSet.delete(client.id)
+              return newSet
+            })
+          }}
+          onClientDeleted={() => {
+            setSelectedClient(null)
+            setResetClients(new Set())
+          }}
         />
 
         {selectedClient && (
@@ -59,12 +71,12 @@ export default function ABSControlPanel() {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
-                    setSkipAutoLoad(true)
-                    setResetKey((prev) => prev + 1)
-                    // Reset skipAutoLoad after a brief delay to allow components to mount
-                    setTimeout(() => {
-                      setSkipAutoLoad(false)
-                    }, 100)
+                    if (selectedClient) {
+                      // Mark this client as reset
+                      setResetClients((prev) => new Set(prev).add(selectedClient.id))
+                      // Force remount of all views
+                      setResetKey((prev) => prev + 1)
+                    }
                   }}
                 >
                   Reset
@@ -99,16 +111,32 @@ export default function ABSControlPanel() {
         ) : (
           <div className="flex-1 p-6 overflow-y-auto">
             {activeTab === "context" && (
-              <ClientContextView key={`context-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+              <ClientContextView
+                key={`context-${resetKey}`}
+                client={selectedClient}
+                skipAutoLoad={resetClients.has(selectedClient.id)}
+              />
             )}
             {activeTab === "keywords" && (
-              <KeywordExplorerView key={`keywords-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+              <KeywordExplorerView
+                key={`keywords-${resetKey}`}
+                client={selectedClient}
+                skipAutoLoad={resetClients.has(selectedClient.id)}
+              />
             )}
             {activeTab === "ideas" && (
-              <BlogIdeasView key={`ideas-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+              <BlogIdeasView
+                key={`ideas-${resetKey}`}
+                client={selectedClient}
+                skipAutoLoad={resetClients.has(selectedClient.id)}
+              />
             )}
             {activeTab === "automation" && (
-              <BloggerAutomationView key={`automation-${resetKey}`} client={selectedClient} skipAutoLoad={skipAutoLoad} />
+              <BloggerAutomationView
+                key={`automation-${resetKey}`}
+                client={selectedClient}
+                skipAutoLoad={resetClients.has(selectedClient.id)}
+              />
             )}
           </div>
         )}

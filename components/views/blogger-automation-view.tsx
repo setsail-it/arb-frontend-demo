@@ -51,11 +51,14 @@ export function BloggerAutomationView({ client, skipAutoLoad = false }: Props) {
       return
     }
     refresh()
-    // Optional: Poll every 10 seconds
-    const interval = setInterval(() => {
-      api.getBlogIdeas(client.id).then(setIdeas).catch(console.error)
-    }, 10000)
-    return () => clearInterval(interval)
+    // Disable polling - state changes are managed locally to avoid resetting user actions
+    // If you need polling, uncomment below but be aware it will reset local state changes
+    // const interval = setInterval(() => {
+    //   if (!processing) {
+    //     api.getBlogIdeas(client.id).then(setIdeas).catch(console.error)
+    //   }
+    // }, 30000)
+    // return () => clearInterval(interval)
   }, [client.id, skipAutoLoad])
 
   const handleQueue = async (id: number) => {
